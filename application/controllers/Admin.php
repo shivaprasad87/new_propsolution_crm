@@ -87,6 +87,7 @@ class Admin extends CI_Controller {
 		//------ End --------------
 
 
+
 		$data['all_user'] = $this->user_model->getEmployeesByLimit($offset, VIEW_PER_PAGE);
 		$this->load->view('admin/users',$data);
 	}
