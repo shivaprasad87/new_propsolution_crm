@@ -81,7 +81,7 @@
                                                         <div class="col-md-3 widget">
                                                             <div class="stats-left ">
                                                                 <h5>Today's</h5>
-                                                                <h4> Active Cp's</h4>
+                                                                <h4> Active User's</h4>
                                                             </div>
                                                             <div class="stats-right">
                                                                 <label><a href="#" class="active_emp" data-type="active_user_total"><?=count($active_count); ?></a></label>
@@ -91,10 +91,10 @@
                                                         <div class="col-md-3 widget states-mdl">
                                                             <div class="stats-left">
                                                                 <h5>Overdue</h5>
-                                                                <h4>Updates</h4>
+                                                                <h4>Calls</h4>
                                                             </div>
                                                             <div class="stats-right">
-                                                                <label> 5    </label>
+                                                               <label><a href="#" class="view_callbacks" data-type="user_overdue"><?php echo $overdue_callback_count; ?></a></label>
                                                             </div>
                                                             <div class="clearfix"> </div>   
                                                         </div>
@@ -104,17 +104,17 @@
                                                                 <h4>Callbacks</h4>
                                                             </div>
                                                             <div class="stats-right">
-                                                                <label><a href="#" class="view_callbacks" data-type="user_overdue">101 </a></label>
+                                                                <label><a href="#" class="view_callbacks" data-type="user_overdue"><?php echo $overdue_callback_count; ?></a></label>
                                                             </div>
                                                             <div class="clearfix"> </div>   
                                                         </div>
                                                         <div class="col-md-3 widget states-last">
                                                             <div class="stats-left">
-                                                                <h5>Closure</h5>
+                                                                <h5>Close</h5>
                                                                 <h4>Callbacks</h4>
                                                             </div>
                                                             <div class="stats-right">
-                                                                <label>16</label>
+                                                                <label><a href="#" class="view_callbacks" data-type="user_close"><?php echo $close_leads_count; ?></a></label>
                                                             </div>
                                                             <div class="clearfix"> </div>   
                                                         </div>
@@ -128,19 +128,19 @@
                                                                 <h4>New Leads </h4>
                                                             </div>
                                                             <div class="stats-right">
-                                                                <label> 100</label>
+                                                                <label><?php echo $calls_assigned_today['count'] ? $calls_assigned_today['count'] : 0; ?></label>
                                                             </div>
                                                             <div class="clearfix"> </div>   
                                                         </div>
                                                         <div class="col-md-3 widget states-mdl">
                                                             <div class="stats-left">
-                                                                <h5>Upcoming</h5>
-                                                                <h4>Tabs</h4>
+                                                                <h5>Today Calls</h5>
+                                                                <h4>Done</h4>
                                                             </div>
                                                             <div class="stats-right">
-                                                                <label>- </label>
+                                                                <label> <?php if(isset($callsDone['totalCalls'])){echo $callsDone['totalCalls'] ? $callsDone['totalCalls'] : 0; }else{echo 0;}?></label>
                                                             </div>
-                                                            <div class="clearfix"> </div>   
+                                                            <div class="clearfix"> </div>      
                                                         </div>
                                                         <div class="col-md-3 widget states-thrd">
                                                             <div class="stats-left">
@@ -243,6 +243,150 @@
 <!-- Bootstrap Core JavaScript -->
   
 
+   <script>
+    $(document).ready(function() {
+         $('#example').DataTable({
+              "paging":   false,
+              "info": false
+ 
+        });
+        if (!Modernizr.inputtypes.date) {
+            // If not native HTML5 support, fallback to jQuery datePicker
+            $('input[type=date]').datepicker({
+                // Consistent format with the HTML5 picker
+                    dateFormat : 'dd/mm/yy'
+                }
+            );
+        }
+        if (!Modernizr.inputtypes.time) {
+            // If not native HTML5 support, fallback to jQuery timepicker
+            $('input[type=time]').timepicker({ 'timeFormat': 'H:i' });
+        }
+        $('#revenueMonth').MonthPicker({
+            Button: false
+        });
+        get_revenues();
+
+        $('.view_callbacks').click(function(){
+            var type = $(this).data('type');
+            var data = {};
+            switch (type)
+            {
+                case "user_total":
+                    data.advisor = "<?php echo $user_id; ?>";
+                    data.due_date = "<?php echo date('Y-m-d'); ?>";
+                    data.access = 'read_write'; 
+                    break;
+
+                case "user_overdue":
+                    data.advisor = "<?php echo $user_id; ?>";
+                    data.due_date_to = "<?php echo date('Y-m-d H:i:s'); ?>";
+                    data.for = "dashboard";
+                    data.access = 'read_write'; 
+                    break;
+
+                case "user_active": 
+                    data.advisor = "<?php echo $user_id; ?>";
+                    data.for = "dashboard";
+                    data.access = 'read_write'; 
+                    break;
+
+                case "user_close": 
+                    data.advisor = "<?php echo $user_id; ?>";
+                    data.status = "close";
+                    break;
+
+                case "user_important":
+                    data.advisor = "<?php echo $user_id; ?>";
+                    data.access = 'read_write'; 
+                    data.important = 1;
+                    break;
+
+                case "manager_active": 
+                    data.advisor = "<?php echo $user_id; ?>";
+                    data.for = "dashboard";
+                    data.access = 'read_write'; 
+                    break;
+
+                case "manager_close":
+                    data.advisor = "<?php echo $user_id; ?>";
+                    data.status = "close";
+                    break;
+            }
+            
+            view_callbacks(data,'post');
+
+        });
+
+        $("#refresh").click(function(){
+            $(".se-pre-con").show();
+            $.get("<?php echo base_url(); ?>dashboard/get_live_feed_back", function(response){
+                $("#live_feed_back_body").html(response);
+                $(".se-pre-con").hide("slow");
+            });
+        });
+
+        $("#overdue_lead_count").click(function(){
+            var form = document.createElement('form');
+            form.method = "POST";
+            form.action = "<?php echo base_url()."dashboard/generate_report" ?>";
+            
+            var input = document.createElement('input');
+            input.type = "text";
+            input.name = "toDate";
+            input.value = $(this).data('datetime');
+            form.appendChild(input);
+
+            input = document.createElement('input');
+            input.type = "text";
+            input.name = "reportType";
+            input.value = "due";
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        $('.emailSiteVisit').on('click', function(){
+            $(".se-pre-con").show();
+            $.ajax({
+                type : 'POST',
+                url : "<?= base_url('site-visit-report-mail');?>",
+                data:1,
+                success: function(res){
+                    $(".se-pre-con").hide("slow");
+                    if(res == 1)
+                        alert('Email Sent Successfully.');
+                    else
+                        alert('Email Sent fail!');
+                }
+            });
+        });
+
+    });
+    // $('#filter_revenue').click(get_revenues());
+    function get_revenues(){
+        $.get( "<?php echo base_url()."dashboard/get_revenue/" ?>"+$('#revenueMonth').val(), function( data ) {
+            $('#revenue_data').html(data);
+        });
+    }
+    function view_callbacks(data, method) {
+        var form = document.createElement('form');
+        form.method = method;
+        form.action = "<?php echo base_url()."view_callbacks?" ?>"+jQuery.param(data);
+        for (var i in data) {
+            var input = document.createElement('input');
+            input.type = "text";
+            input.name = i;
+            input.value = data[i];
+            form.appendChild(input);
+        }
+        //console.log(form);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+</script>
 <script>
     $(document).ready(function() {
          $('#example').DataTable({
@@ -262,7 +406,80 @@
             // If not native HTML5 support, fallback to jQuery timepicker
             $('input[type=time]').timepicker({ 'timeFormat': 'H:i' });
         }
-    }); 
+        $('#revenueMonth').MonthPicker({
+            Button: false
+        });
+        get_revenues();
+
+       
+
+        $("#refresh").click(function(){
+            $(".se-pre-con").show();
+            $.get("<?php echo base_url(); ?>dashboard/get_live_feed_back", function(response){
+                $("#live_feed_back_body").html(response);
+                $(".se-pre-con").hide("slow");
+            });
+        });
+
+        $("#overdue_lead_count").click(function(){
+            var form = document.createElement('form');
+            form.method = "POST";
+            form.action = "<?php echo base_url()."dashboard/generate_report" ?>";
+            
+            var input = document.createElement('input');
+            input.type = "text";
+            input.name = "toDate";
+            input.value = $(this).data('datetime');
+            form.appendChild(input);
+
+            input = document.createElement('input');
+            input.type = "text";
+            input.name = "reportType";
+            input.value = "due";
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        $('.emailSiteVisit').on('click', function(){
+            $(".se-pre-con").show();
+            $.ajax({
+                type : 'POST',
+                url : "<?= base_url('site-visit-report-mail');?>",
+                data:1,
+                success: function(res){
+                    $(".se-pre-con").hide("slow");
+                    if(res == 1)
+                        alert('Email Sent Successfully.');
+                    else
+                        alert('Email Sent fail!');
+                }
+            });
+        });
+
+    });
+    // $('#filter_revenue').click(get_revenues());
+    function get_revenues(){
+        $.get( "<?php echo base_url()."dashboard/get_revenue/" ?>"+$('#revenueMonth').val(), function( data ) {
+            $('#revenue_data').html(data);
+        });
+    }
+    function view_callbacks(data, method) {
+        var form = document.createElement('form');
+        form.method = method;
+        form.action = "<?php echo base_url()."view_callbacks?" ?>"+jQuery.param(data);
+        for (var i in data) {
+            var input = document.createElement('input');
+            input.type = "text";
+            input.name = i;
+            input.value = data[i];
+            form.appendChild(input);
+        }
+        //console.log(form);
+        document.body.appendChild(form);
+        form.submit();
+    }
 
 </script>
 </body>

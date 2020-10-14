@@ -32,6 +32,12 @@ class Admin extends CI_Controller {
 		$data['profile_pic'] = $this->user_model->get_profile_pic_name($data['user_id']);
         $data['profile_pic'] = json_decode( json_encode($data['profile_pic']), true);
         $data['active_count'] = $this->user_model->get_live_feed_back();
+        $data['overdue_callback_count'] = $this->callback_model->fetch_callback_count($data['user_id'],'overdue');
+        $data['close_leads_count'] = $this->callback_model->fetch_leads_count($data['user_id'],'close');
+        $data['calls_assigned_today']=$this->callback_model->get_callbacks_assigned_today($data['user_id']);
+        $data['total_callback_count'] = $this->callback_model->all_leads_count();
+        $data['callsDone'] = $this->callback_model->callbackTrackCountByUserId($data['user_id']);
+        //echo $data['overdue_callback_count'];die;
         $this->session->set_userdata('profile_pic',$data['profile_pic'][0]['profile_pic']);
 		$this->load->view('admin/home',$data);
 

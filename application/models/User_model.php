@@ -86,6 +86,7 @@ class User_model extends CI_Model {
         $this->db->join('user as u2','u2.id=u1.reports_to','LEFT');
         $this->db->order_by('u1.id','desc');
         $this->db->where('u1.type','1');
+        $this->db->where('u1.active','1');
 
         if($limit!='' ){
            $this->db->limit($limit, $start);
@@ -103,6 +104,7 @@ class User_model extends CI_Model {
         $this->db->join('user as u2','u2.id=u1.reports_to','LEFT');
         $this->db->order_by('u1.id','desc');
         $this->db->where('u1.type','1');
+        $this->db->where('u1.active','1');
         return $this->db->count_all_results();
     }
 
