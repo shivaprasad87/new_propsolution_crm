@@ -2220,8 +2220,7 @@ $customer_req = array(
 	public function acres99_leads()
 	{
 		
-		$data['lead']=$this->fetch_99acre_online_leads();
-		//print_r($data['lead']);die;
+		$data['lead']=$this->fetch_99acre_online_leads(); 
 		$this->common_model->save_online_leads_99acres(json_decode(json_encode($data['lead']), True));
 		$data['name'] ="more";
 		$data['heading'] ="99 Acres Online Callbacks";
@@ -2388,13 +2387,13 @@ $customer_req = array(
 		$url =  "https://www.99acres.com/99api/v1/getmy99Response/OeAuXClO43hwseaXEQ/uid/";
 		//$data = $this->common_model->load_l_s_credentials('99acre');
 		//print_r($data);die;
-		$username = 'city.99';
-		$password = 'Shashank1986';
+		$username = 'ps999acres';
+		$password = 'Ranjeet939';
 		$start_date = date("Y-m-d 00:00:00", strtotime('-1 days'));
 		$end_date = date("Y-m-d 23:59:59");
 		$request = "<?xml version='1.0'?><query><user_name>$username</user_name><pswd>$password</pswd><start_date>$start_date</start_date><end_date>$end_date</end_date></query>";
 		$allParams = array('xml'=>$request);
-		$leads = $this->get99AcresLeads();
+		$leads = $this->get99AcresLeads($allParams,$url);
 		//print_r($leads); die;
 		$data=array();
 		$i=0;
@@ -2544,37 +2543,13 @@ $customer_req = array(
 		//echo json_encode($return);
 	}
 
-	function get99AcresLeads(){
-		$curl = curl_init();
- 
-curl_setopt_array($curl, array(
-  CURLOPT_URL => "http://www.99acres.com/99api/v1/getmy99Response/OeAuXClO43hwseaXEQ/uid/",
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_ENCODING => "",
-  CURLOPT_MAXREDIRS => 10,
-  CURLOPT_TIMEOUT => 30,
-  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-  CURLOPT_CUSTOMREQUEST => "POST",
-  CURLOPT_POSTFIELDS => "xml=<?xml version='1.0'?><query><user_name>countryside99</user_name><pswd>ind123</pswd><start_date>2020-02-12 00:00:00</start_date><end_date>2020-02-13 23:59:59</end_date></query>",
-  CURLOPT_HTTPHEADER => array( 
-    "content-type: application/x-www-form-urlencoded",
-  ),
-));
- 
-$response = curl_exec($curl);
-		$info = curl_getinfo($curl);
-$err = curl_error($curl);
- 
-curl_close($curl);
- 
-if ($err) {
-  echo "cURL Error #:" . $err;
-} else {
-  echo $response;
+function get99AcresLeads($allParams,$url){
+		$crl = curl_init($url);
+		curl_setopt ($crl, CURLOPT_POST, 1);
+		curl_setopt ($crl, CURLOPT_POSTFIELDS, $allParams);
+		curl_setopt ($crl, CURLOPT_RETURNTRANSFER,1);
+		return curl_exec ($crl);
 	}
-
-	return $info;
-}
 	function dead_leads_reassign(){
 		if($this->input->post('chkValues')) {
 			$valuesArry = json_decode($this->input->post('chkValues'), true);
